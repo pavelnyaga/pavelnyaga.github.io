@@ -55,6 +55,14 @@
                 <h5>- Software Engineering</h5>
                 <h5>- Data Science</h5>
                 <h5>- Technical Product and Project Management</h5>       
+            <h3>Pavel's HR Agent, chat with the agent about Pavel:</h3>
+            <div id="chat" class="well" style="min-height: 320px; overflow-y: auto;"></div>
+            <div class="input-group" style="margin-top: 12px;">
+              <input id="inp" class="form-control" placeholder="Ask about the resume..."/>
+              <span class="input-group-btn">
+                <button id="btn" class="btn btn-primary" type="button">Send</button>
+              </span>
+            </div>
           </div>
           <!--  md-8  -->
         </div>
@@ -82,5 +90,43 @@
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script>
+  (function() {
+    var CHAT_URL = "http://35.239.70.3/chat";
+    var chat = document.getElementById("chat");
+    var inp = document.getElementById("inp");
+    var btn = document.getElementById("btn");
+
+    if (chat && inp && btn) {
+      function append(role, text) {
+        var div = document.createElement("div");
+        div.className = role === "user" ? "alert alert-success" : "alert alert-info";
+        div.textContent = text;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      function send() {
+        var q = inp.value.trim();
+        if (!q) return;
+        inp.value = "";
+        append("user", q);
+        btn.disabled = true;
+        fetch(CHAT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: q })
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) { append("bot", data.answer || "(no answer)"); })
+        .catch(function() { append("bot", "Error contacting backend."); })
+        .finally(function() { btn.disabled = false; });
+      }
+
+      btn.addEventListener("click", send);
+      inp.addEventListener("keydown", function(e) { if (e.key === "Enter") send(); });
+    }
+  })();
+</script>
 </body>
 </html>
